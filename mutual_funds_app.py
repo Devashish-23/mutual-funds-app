@@ -33,15 +33,10 @@ def load_data():
     ]
     for col in numeric_cols:
         if col in df.columns:
-            cleaned = df[col].astype(str).str.replace(r"[^\d.\-]", "", regex=True)
-            # If multiple dots exist, keep only the first one
-            def fix_dots(s):
-                parts = s.split(".")
-                if len(parts) > 2:
-                    return parts[0] + "." + "".join(parts[1:])
-                return s
-            cleaned = cleaned.apply(fix_dots)
-            df[col] = pd.to_numeric(cleaned, errors="coerce")
+            s = df[col].astype(str).str.replace(r"[^\d.\-]", "", regex=True)
+            # Keep only first dot by splitting and rejoining
+            s = s.str.split(".").apply(lambda p: p[0] + ("." + p[1] if len(p) > 1 else "") if isinstance(p, list) else p)
+            df[col] = pd.to_numeric(s, errors="coerce")
 
     df["risk_level"] = df["risk_level"].fillna(0).astype(int)
     df["risk_label"] = df["risk_level"].map(RISK_MAP)
